@@ -9,3 +9,6 @@ _**DISCLAIMER:** THIS SCRIPT USES WEB SCRAPING. COMMERCIAL USE OF THIS SCRIPT IS
 ## Usage
 Extract the har dump from browser's developer tools (Only html and xhr required), then run:<br/>
 `python instagram_har.py <input.har>`
+<br/>
+<br/>
+**Tested on Firefox v76.0.1**
