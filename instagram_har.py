@@ -10,13 +10,14 @@ p = re.compile('[0-9]*_[0-9]*.*_[n|s]\.(jpg|mp4)')
 
 def get_data_from_html(req, filtered_response):
     soup = BeautifulSoup(req['response']['content']['text'], "html.parser")
-    scripts = soup.find_all('script', src=None)
     target_script = None
-    for script in scripts:
-        if 'window._sharedData =' in script.text:
+    for script in soup.find_all('script', src=None):
+        if 'window._sharedData =' in script.string:
             target_script = script
             break
-    k = target_script.text.replace('window._sharedData =', '')
+    if target_script is None:
+        return
+    k = target_script.string.replace('window._sharedData =', '')
     k = k[:-1]
     k = json.loads(k)
     homepage_entries = k['entry_data']['ProfilePage'][0]['graphql']['user']
