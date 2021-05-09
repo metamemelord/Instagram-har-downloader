@@ -83,8 +83,8 @@ html_header = {"name": "content-type", "value": "text/html; charset=utf-8"}
 # Filter all the calls that were made to the graphql API
 filtered_response = []
 for req in request_items:
-    if INSTA_HOME + username in req['request']['url'] and html_header in req[
-            'response']['headers']:
+    if INSTA_HOME + username in req['request']['url'] and str(html_header) in str(req[
+            'response']['headers']).lower():
         get_data_from_html(req, filtered_response)
     elif GRAPHQL_QUERY_PAT in req['request']['url']:
         filtered_response.append(
