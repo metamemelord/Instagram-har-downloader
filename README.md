@@ -11,7 +11,7 @@ _**DISCLAIMER:** THIS SCRIPT USES WEB SCRAPING. COMMERCIAL USE OF THIS SCRIPT IS
 - Open developer tools and network tab.
 - Disable cache and reload page.
 - Scroll down till all posts are downloaded.
-- Click the gear icon on top left in dev tools and click "Save All As HAR".
+- Click the gear icon on top right in dev tools and click "Save All As HAR".
 
 ## Usage
 Extract the har dump using steps from above section, then run:<br/>
