@@ -7,7 +7,7 @@ _**DISCLAIMER:** THIS SCRIPT USES WEB SCRAPING. COMMERCIAL USE OF THIS SCRIPT IS
 `pip install -r requirements.txt`
 
 ## Get HAR file
-- Open user profile in Firefox - [example](https://www.instagram.com/gaurav.sai.ni.hai/).
+- Open user profile in Firefox - [example](https://www.instagram.com/whentestingmetquality/).
 - Open developer tools and network tab.
 - Disable cache and reload page.
 - Scroll down till all posts are downloaded.
