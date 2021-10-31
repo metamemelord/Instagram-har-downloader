@@ -1,3 +1,4 @@
+#!/opt/anaconda3/bin/python
 import re, requests, json, os, sys, random, string
 from bs4 import BeautifulSoup
 
@@ -50,17 +51,20 @@ def download_media(obj, base_path):
         typ = '.mp4'
     url = url.replace('\u0026', '&')
     filename = get_random_string(40) + typ
+    filename = typ
+
     found = p.search(url)
     if found:
         filename = found.group(0)
-    httpresp = requests.get(url)
-
     filepath = os.path.join(base_path, filename)
-
-    out_file = open(filepath, "wb")
-    out_file.write(httpresp.content)
-    out_file.close()
-    print("Saved", filename)
+    if not os.path.exists(filepath):
+        httpresp = requests.get(url)
+        out_file = open(filepath, "wb")
+        out_file.write(httpresp.content)
+        out_file.close()
+        print("Saved", filename)
+    else:
+        print("Already exists", filename)
 
 
 input_file = open(os.path.abspath(sys.argv[1]))
@@ -83,8 +87,8 @@ html_header = {"name": "content-type", "value": "text/html; charset=utf-8"}
 # Filter all the calls that were made to the graphql API
 filtered_response = []
 for req in request_items:
-    if INSTA_HOME + username in req['request']['url'] and str(html_header) in str(req[
-            'response']['headers']).lower():
+    if INSTA_HOME + username in req['request']['url'] and str(
+            html_header) in str(req['response']['headers']).lower():
         get_data_from_html(req, filtered_response)
     elif GRAPHQL_QUERY_PAT in req['request']['url']:
         filtered_response.append(
