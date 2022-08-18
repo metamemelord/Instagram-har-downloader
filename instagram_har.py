@@ -2,11 +2,12 @@
 import re, requests, json, os, sys, random, string
 from bs4 import BeautifulSoup
 
+WEB_PROFILE_INFO_PAT='api/v1/users/web_profile_info'
 GRAPHQL_QUERY_PAT = 'graphql/query'
 INSTA_HOME = 'https://www.instagram.com/'
 failed_videos = []
 
-p = re.compile('[0-9]*_[0-9]*.*_[n|s]\.(jpg|mp4)')
+p = re.compile('[0-9]*_[0-9]*.*_[n|s]\.(webp|jpg|mp4)')
 
 
 def get_data_from_html(req, filtered_response):
@@ -51,12 +52,12 @@ def download_media(obj, base_path):
         typ = '.mp4'
     url = url.replace('\u0026', '&')
     filename = get_random_string(40) + typ
-    filename = typ
-
     found = p.search(url)
     if found:
         filename = found.group(0)
     filepath = os.path.join(base_path, filename)
+    if len(filename) < 6:
+        print(obj, "\n\n", url, "\n\n")
     if not os.path.exists(filepath):
         httpresp = requests.get(url)
         out_file = open(filepath, "wb")
@@ -66,6 +67,23 @@ def download_media(obj, base_path):
     else:
         print("Already exists", filename)
 
+def create_dirs_and_get_output_path(username):
+    downloads_dir = os.path.join(os.getcwd(), 'Downloads')
+    create_dir_if_does_not_exist(downloads_dir, True)
+
+    output_dir = os.path.join(downloads_dir, username)
+    create_dir_if_does_not_exist(output_dir, True)
+
+    return output_dir
+
+def create_dir_if_does_not_exist(path, log=False):
+    if not os.path.isdir(path):
+        os.mkdir(path)
+        if log:
+            print('Created directory:', path)
+    else:
+        if log:
+            print('Directory exists:', path)
 
 input_file = open(os.path.abspath(sys.argv[1]))
 file_content = input_file.read()
@@ -74,9 +92,8 @@ input_file.close()
 username = re.search('\(@[^ ]*\)', file_content).group(0)[2:-1]
 print("Username:", username)
 
-output_dir = os.path.join(os.getcwd(), username)
-if not os.path.isdir(output_dir):
-    os.mkdir(output_dir)
+output_dir = create_dirs_and_get_output_path(username)
+
 print("Output dir:", output_dir)
 
 # Load the json content of HAR file
@@ -87,12 +104,15 @@ html_header = {"name": "content-type", "value": "text/html; charset=utf-8"}
 # Filter all the calls that were made to the graphql API
 filtered_response = []
 for req in request_items:
+    if req['request']['method'] == 'OPTIONS':
+        continue
     if INSTA_HOME + username in req['request']['url'] and str(
-            html_header) in str(req['response']['headers']).lower():
+            html_header) in str(req['response']['headers']).lower(): # This doesn't work anymore!
         get_data_from_html(req, filtered_response)
-    elif GRAPHQL_QUERY_PAT in req['request']['url']:
+    elif GRAPHQL_QUERY_PAT in req['request']['url'] or WEB_PROFILE_INFO_PAT in req['request']['url']:
         filtered_response.append(
             json.loads(req['response']['content']['text'])['data']['user'])
+        
 
 # Filter only timeline posts
 timeline_posts = []
@@ -114,8 +134,7 @@ for post in timeline_posts:
     if post['__typename'] == 'GraphSidecar':
         sidecar_id = post["id"]
         output_dir_sidecar = os.path.join(output_dir, sidecar_id)
-        if not os.path.isdir(output_dir_sidecar):
-            os.mkdir(output_dir_sidecar)
+        create_dir_if_does_not_exist(output_dir_sidecar)
         for sidecar_item in post["edge_sidecar_to_children"]["edges"]:
             download_media(sidecar_item['node'], output_dir_sidecar)
     else:
